@@ -1,0 +1,34 @@
+Tal y como comentamos ayer, querríamos plantearte como prueba técnica construir con Django y Django REST Framework una pequeña aplicación donde se exponga un API de películas para poder ser consumido/utilizado desde aplicaciones cliente (no es necesario que desarrolles un cliente, pero sería valorable al menos una colección de postman para probar).
+
+Requisitos Técnicos Base
+- Deberás crear la aplicación como proyecto Django con Django REST Framework (DRF).
+- La aplicación deberá poder lanzarse con python manage.py runserver.
+- En cuanto al gestor de dependencias utiliza pip con archivo requirements.txt.
+- La aplicación deberá exponer un API REST que deberá permitir al menos buscar películas por nombre mediante llamadas HTTP y acceder a su detalle.
+- Internamente la aplicación deberá consultar en otro API de películas como por ejemplo TMDB (API Overview) o OMDB ( https://www.omdbapi.com/ ) 
+- Para invocar al API de TMDB (desde dentro de tu aplicación) puedes utilizar las utilidades de Django/Python como el módulo requests o similar que consideres apropiado.
+
+Requisitos Funcionales Adicionales
+También nos gustaría que cubrieras los siguientes requisitos:
+- El API deberá poder ser invocado desde aplicaciones Web utilizando llamadas XHR, por lo que deberás considerar la posibilidad de configurar CORS. La desarrolles o no, considera habilitar las peticiones CORS para una aplicación Angular corriendo en localhost y puerto 4200.
+- Sería interesante que, además, te plantearas cuestiones de acceso autenticado a tu API expuesto desde Django/DRF. No es necesaria la gestión de usuarios, puede basarse perfectamente en usuarios mock hardcoded/en un fichero de configuración.
+
+Requisitos Opcionales (Valorables)
+- De manera adicional/opcional, sería interesante añadir al API la posibilidad de gestionar un listado de películas favoritas pudiendo añadir/eliminar y listar. Para la persistencia puedes utilizar SQLite (base de datos por defecto de Django) con modelos Django, lo cual sería muy valorable.
+
+Entregables
+- Código fuente del proyecto (repositorio Git, puede ser privado, me das acceso)
+- Archivo requirements.txt con las dependencias
+Archivo README.md con:
+- Instrucciones de instalación y ejecución
+- Descripción de los endpoints expuestos
+- Decisiones técnicas tomadas (arquitectura, autenticación, caché, etc.)
+- Criterios de Evaluación
+
+Se valorará:
+- Correcta implementación de Django REST Framework
+- Estructura y organización del código (separación de responsabilidades)
+- Diseño del API REST (buenas prácticas de diseño de APIs sobre HTTP)
+- Manejo de errores
+- Buenas prácticas de Python/Django
+- Documentación clara
