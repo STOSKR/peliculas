@@ -5,7 +5,7 @@ from movies.models import Favorite
 class FavoriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Favorite
-        fields = ["imdb_id", "title", "year", "poster", "added_at"]
+        fields = ["imdbID", "Title", "Year", "Poster", "added_at"]
         read_only_fields = ["added_at"]
 
 
