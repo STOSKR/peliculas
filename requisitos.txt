@@ -15,7 +15,7 @@ También nos gustaría que cubrieras los siguientes requisitos:
 
 Requisitos Opcionales (Valorables)
 - De manera adicional/opcional, sería interesante añadir al API la posibilidad de gestionar un listado de películas favoritas pudiendo añadir/eliminar y listar. Para la persistencia puedes utilizar SQLite (base de datos por defecto de Django) con modelos Django, lo cual sería muy valorable.
-- Una colección de postman para probar
+    - Una colección de postman para probar
 
 Entregables
 - Código fuente del proyecto (repositorio Git, puede ser privado, me das acceso)

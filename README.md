@@ -253,6 +253,104 @@ Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
 }
 ```
 
+### 3. Listar Películas Favoritas
+
+Obtiene todas las películas favoritas del usuario autenticado.
+
+**Endpoint:** `GET /api/movies/favorites/`
+**Autenticación:** Requerida (JWT)
+
+**Ejemplo de uso:**
+```bash
+GET http://localhost:8000/api/movies/favorites/
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
+```
+
+**Respuesta exitosa (200 OK):**
+```json
+[
+  {
+    "id": 1,
+    "imdb_id": "tt0133093",
+    "title": "The Matrix",
+    "year": "1999",
+    "poster": "https://...",
+    "added_at": "2025-11-14T10:30:00Z"
+  },
+  {
+    "id": 2,
+    "imdb_id": "tt2015381",
+    "title": "Guardians of the Galaxy",
+    "year": "2014",
+    "poster": "https://...",
+    "added_at": "2025-11-14T09:15:00Z"
+  }
+]
+```
+
+### 4. Añadir Película a Favoritos
+
+Añade una película a la lista de favoritos del usuario.
+
+**Endpoint:** `POST /api/movies/favorites/`
+**Autenticación:** Requerida (JWT)
+
+**Body (JSON):**
+```json
+{
+  "imdb_id": "tt0133093",
+  "title": "The Matrix",
+  "year": "1999",
+  "poster": "https://..."
+}
+```
+
+**Respuesta exitosa (201 Created):**
+```json
+{
+  "id": 1,
+  "imdb_id": "tt0133093",
+  "title": "The Matrix",
+  "year": "1999",
+  "poster": "https://...",
+  "added_at": "2025-11-14T10:30:00Z"
+}
+```
+
+**Error - Ya existe (400 Bad Request):**
+```json
+{
+  "error": "Esta película ya está en favoritos"
+}
+```
+
+### 5. Eliminar Película de Favoritos
+
+Elimina una película de la lista de favoritos del usuario.
+
+**Endpoint:** `DELETE /api/movies/favorites/<imdb_id>/`
+**Autenticación:** Requerida (JWT)
+
+**Ejemplo de uso:**
+```bash
+DELETE http://localhost:8000/api/movies/favorites/tt0133093/
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
+```
+
+**Respuesta exitosa (200 OK):**
+```json
+{
+  "message": "Película eliminada de favoritos"
+}
+```
+
+**Error - No encontrada (404 Not Found):**
+```json
+{
+  "error": "Película no encontrada en favoritos"
+}
+```
+
 ## Decisiones Técnicas
 
 ### Arquitectura
@@ -276,7 +374,7 @@ movies/
 
 3. **Repositories (Acceso a datos)**: Abstraen la comunicación con APIs externas (OMDB). Esta capa podría fácilmente cambiarse para usar otra fuente de datos sin afectar el resto del código.
 
-Esta separación hace que sea más fácil testear, mantener y escalar el proyecto. Si mañana quiero cambiar OMDB por otra API, solo toco el repository.
+Esta separación hace que sea más fácil testear, mantener y escalar el proyecto. Si mañana quiero cambiar OMDB por otra API, solo hace falta tocar el repository.
 
 ### Framework y Dependencias
 

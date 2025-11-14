@@ -1,0 +1,319 @@
+{
+	"info": {
+		"_postman_id": "72292cdf-8f07-4a9d-9afb-fe7382dc78ef",
+		"name": "Izertis",
+		"description": "# Películas API\n\nAPI REST para buscar películas, consultar detalles y gestionar favoritos usando OMDB como fuente de datos.\n\n## Autenticación\n\nEste API usa JWT (JSON Web Tokens). Para acceder a los endpoints:\n\n1. Ejecuta la request \"Login\" con credenciales válidas\n    \n2. El token `access` se guarda automáticamente en la variable de colección\n    \n3. Todas las demás requests lo usan automáticamente en Authorization\n    \n\n## Usuarios disponibles\n\n- **username:** usuario1, **password:** pass123\n    \n- **username:** usuario2, **password:** pass123\n    \n- **username:** admin, **password:** admin123\n    \n\n## Base URL\n\n[http://localhost:8000](http://localhost:8000)\n\n## Endpoints\n\n### Autenticación\n\n- POST /api/auth/login/ - Obtener tokens JWT\n    \n- POST /api/auth/refresh/ - Refrescar access token\n    \n\n### Películas\n\n- GET /api/movies/search/ - Buscar películas\n    \n- GET /api/movies/{imdb_id}/ - Detalle de película\n    \n\n### Favoritos\n\n- GET /api/movies/favorites/ - Listar películas favoritas\n    \n- POST /api/movies/favorites/ - Añadir película a favoritos\n    \n- DELETE /api/movies/favorites/{imdb_id}/ - Borrar película de favoritos\n    \n\n## Flujo recomendado\n\n1. **Login** → Obtener tokens\n    \n2. **Buscar películas** → Encontrar una película\n    \n3. **Añadir a favoritos** → Guardar película\n    \n4. **Obtener favoritos** → Ver lista de favoritas\n    \n5. **Borrar de favoritos** → Eliminar película\n    \n\n## Notas\n\n- Los tokens `access_token` y `refresh_token` se guardan automáticamente\n    \n- Cada usuario tiene su propia lista de favoritos\n    \n- No se pueden añadir películas duplicadas a favoritos",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39373031"
+	},
+	"item": [
+		{
+			"name": "Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();\r",
+							"pm.collectionVariables.set(\"access_token\", jsonData.access);\r",
+							"pm.collectionVariables.set(\"refresh_token\", jsonData.refresh);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"username\": \"usuario1\",\r\n  \"password\": \"pass123\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/auth/login/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"login",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Refresh token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();\r",
+							"pm.collectionVariables.set(\"access_token\", jsonData.access);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"refresh\": \"{{refresh_token}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/auth/refresh/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"refresh",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Buscar películas",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/movies/search/?query=matrix",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"movies",
+						"search",
+						""
+					],
+					"query": [
+						{
+							"key": "query",
+							"value": "matrix"
+						},
+						{
+							"key": "page",
+							"value": "1",
+							"description": "opcional",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Detalle de película",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/movies/tt0133093/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"movies",
+						"tt0133093",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Añadir a favoritos",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"imdb_id\": \"tt0133093\",\r\n    \"title\": \"The Matrix\",\r\n    \"year\": \"1999\",\r\n    \"poster\": \"https://m.media-amazon.com/images/M/MV5BNzQzOTk3OTAtNDQ0Zi00ZTVkLWI0MTEtMDllZjNkYzNjNTc4L2ltYWdlXkEyXkFqcGdeQXVyNjU0OTQ0OTY@._V1_SX300.jpg\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/movies/favorites/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"movies",
+						"favorites",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Obtener favoritos",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/movies/favorites/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"movies",
+						"favorites",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Borrar de favoritos",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/movies/favorites/tt0133093/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"movies",
+						"favorites",
+						"tt0133093",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refresh_token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
