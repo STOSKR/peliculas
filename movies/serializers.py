@@ -10,7 +10,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
 
 class FavoriteCreateSerializer(serializers.Serializer):
-    imdb_id = serializers.CharField(max_length=20)
-    title = serializers.CharField(max_length=255)
-    year = serializers.CharField(max_length=10, required=False, default="")
-    poster = serializers.URLField(required=False, default="")
+    imdbID = serializers.CharField(max_length=20)
+    Title = serializers.CharField(max_length=255)
+    Year = serializers.CharField(max_length=10, required=False, default="")
+    Poster = serializers.URLField(required=False, default="")
