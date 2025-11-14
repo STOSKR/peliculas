@@ -14,7 +14,7 @@ También nos gustaría que cubrieras los siguientes requisitos:
     - Sería interesante que, además, te plantearas cuestiones de acceso autenticado a tu API expuesto desde Django/DRF. No es necesaria la gestión de usuarios, puede basarse perfectamente en usuarios mock hardcoded/en un fichero de configuración.
 
 Requisitos Opcionales (Valorables)
-- De manera adicional/opcional, sería interesante añadir al API la posibilidad de gestionar un listado de películas favoritas pudiendo añadir/eliminar y listar. Para la persistencia puedes utilizar SQLite (base de datos por defecto de Django) con modelos Django, lo cual sería muy valorable.
+    - De manera adicional/opcional, sería interesante añadir al API la posibilidad de gestionar un listado de películas favoritas pudiendo añadir/eliminar y listar. Para la persistencia puedes utilizar SQLite (base de datos por defecto de Django) con modelos Django, lo cual sería muy valorable.
     - Una colección de postman para probar
 
 Entregables
@@ -24,8 +24,8 @@ Entregables
 Archivo README.md con:
     - Instrucciones de instalación y ejecución
     - Descripción de los endpoints expuestos
-- Decisiones técnicas tomadas (arquitectura, autenticación, caché, etc.)
-- Criterios de Evaluación
+    - Decisiones técnicas tomadas (arquitectura, autenticación, caché, etc.)
+    - Criterios de Evaluación
 
 Se valorará:
 - Correcta implementación de Django REST Framework

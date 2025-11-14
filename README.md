@@ -2,14 +2,14 @@
 
 API REST con Django y DRF para buscar películas y ver su información detallada. Los datos se obtienen de OMDB API.
 
-## 📦 Colección de Postman
+## Colección de Postman
 
-Incluye una colección de Postman lista para usar: `Peliculas_API.postman_collection.json`
+Incluye una colección de Postman lista para usar: `Movie_API.postman_collection.json`
 
 **Para importarla:**
 1. Abre Postman
 2. Click en "Import"
-3. Selecciona el archivo `Peliculas_API.postman_collection.json`
+3. Selecciona el archivo `Movie_API.postman_collection.json`
 4. La colección incluye todos los endpoints con autenticación JWT configurada
 
 ## Requisitos Previos
@@ -355,26 +355,34 @@ Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
 
 ### Arquitectura
 
-El proyecto implementa una **arquitectura en capas con patrón Repository** para mantener una clara separación de responsabilidades:
+He usado una **arquitectura en capas con patrón Repository** para mantener el código organizado y fácil de mantener:
 
 ```
 movies/
-├── views.py              # Capa de presentación (controladores HTTP)
-├── services/             # Capa de lógica de negocio
+├── views.py              # Controladores HTTP (reciben peticiones, devuelven respuestas)
+├── services/             # Lógica de negocio
 │   └── movie_service.py
-└── repositories/         # Capa de acceso a datos
-    └── omdb_repository.py
+├── repositories/         # Acceso a datos externos
+│   └── omdb_repository.py
+├── models.py             # Modelos de base de datos
+└── serializers.py        # Transformación de datos para la API
 ```
 
-**Capas:**
+**¿Por qué esta estructura?**
 
-1. **Views (Controladores)**: Manejan las peticiones HTTP, validan parámetros de entrada y retornan respuestas HTTP apropiadas.
+He separado las responsabilidades en capas para que el código quede más limpio:
 
-2. **Services (Lógica de negocio)**: Orquestan las operaciones, aplican reglas de negocio y transforman datos cuando es necesario.
+1. **Views**: Se encargan solo de recibir la petición HTTP y devolver la respuesta. No tienen lógica de negocio.
 
-3. **Repositories (Acceso a datos)**: Abstraen la comunicación con APIs externas (OMDB). Esta capa podría fácilmente cambiarse para usar otra fuente de datos sin afectar el resto del código.
+2. **Services**: Aquí va la lógica. Por ejemplo, si necesito validar algo o combinar datos de varios sitios, lo hago aquí.
 
-Esta separación hace que sea más fácil testear, mantener y escalar el proyecto. Si mañana quiero cambiar OMDB por otra API, solo hace falta tocar el repository.
+3. **Repositories**: Hablan con APIs externas (OMDB en este caso). Si mañana quiero cambiar OMDB por otra API, solo toco esta capa.
+
+4. **Models**: Definen la estructura de la base de datos (en este caso, las películas favoritas).
+
+5. **Serializers**: Convierten los datos del modelo a JSON y validan lo que llega del cliente.
+
+Esta separación hace que sea fácil entender dónde está cada cosa y modificar una parte sin romper las demás.
 
 ### Framework y Dependencias
 
@@ -387,86 +395,150 @@ Esta separación hace que sea más fácil testear, mantener y escalar el proyect
 
 ### Configuración CORS
 
-El proyecto está configurado para permitir peticiones CORS desde aplicaciones web cliente. Específicamente, se permite el acceso desde:
+Django por defecto bloquea peticiones desde otros orígenes (política CORS). Como el requisito era que pudiera consumirse desde una app Angular en `localhost:4200`, he tenido que configurarlo.
 
+**Configuración en `settings.py`:**
 ```python
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:4200',  # Angular development server
+    'http://localhost:4200',  # Angular dev server
 ]
 ```
 
-Esto habilita que una aplicación Angular (u otro framework frontend) corriendo en `localhost:4200` pueda realizar llamadas XHR/Fetch al API sin problemas de CORS.
+Esto permite que una aplicación web corriendo en ese puerto pueda hacer fetch/XHR a la API sin problemas de CORS.
 
-**Ubicación:** `peli/settings.py`
+Si en el futuro se necesitan añadir más orígenes (por ejemplo, cuando la app esté en producción), solo habría que añadirlos a esta lista.
 
 ### Autenticación
 
-Actualmente, el API implementa **autenticación JWT (JSON Web Tokens)** con usuarios mock hardcoded.
+He decidido usar **JWT (JSON Web Tokens)** porque es lo más habitual en APIs REST modernas.
 
-**Implementación:**
-- **Simple JWT**: Librería `djangorestframework-simplejwt` para gestión de tokens
-- **Usuarios mock**: 3 usuarios hardcoded creados mediante comando de Django
-- **Access Token**: Válido por 1 hora
-- **Refresh Token**: Válido por 7 días
-- **Algoritmo**: HS256
+**¿Cómo funciona?**
+- El usuario envía sus credenciales a `/api/auth/login/`
+- Si son correctas, recibe dos tokens:
+  - **Access token**: dura 1 hora, se usa para acceder a la API
+  - **Refresh token**: dura 7 días, sirve para renovar el access token sin volver a poner usuario/contraseña
+- Para cada petición, el cliente incluye el access token en el header: `Authorization: Bearer <token>`
+- Cuando el access token expira, usa el refresh token en `/api/auth/refresh/` para obtener uno nuevo
 
-**Flujo de autenticación:**
-1. Usuario envía credenciales a `/api/auth/login/`
-2. Si son válidas, recibe `access_token` y `refresh_token`
-3. Incluye `access_token` en header `Authorization: Bearer <token>` para cada petición
-4. Cuando expira, usa `refresh_token` en `/api/auth/refresh/` para obtener nuevo `access_token`
+**Usuarios mock**
 
-**Usuarios disponibles (hardcoded):**
+Como no hacía falta un sistema completo de gestión de usuarios, he creado 3 usuarios hardcoded con un comando Django:
+
 ```python
-# Creados con: python manage.py create_mock_users
-admin / admin123 (superusuario)
+# python manage.py create_mock_users crea:
+admin / admin123 (es superusuario, puede acceder al admin de Django)
 usuario1 / pass123
 usuario2 / pass123
 ```
 
-**Endpoints de autenticación:**
-- `POST /api/auth/login/` - Obtener tokens (access + refresh)
-- `POST /api/auth/refresh/` - Refrescar access token
+**¿Por qué JWT y no sesiones?**
+- JWT no necesita guardar nada en el servidor (stateless), cada token tiene toda la info que necesita
+- Es más fácil de escalar: no hay que sincronizar sesiones entre servidores
+- Funciona mejor para APIs que van a ser consumidas por apps móviles o SPAs
 
-**¿Por qué JWT?**
-- No necesita guardar sesiones en el servidor (stateless)
-- Escalable y seguro
-- El token incluye la info del usuario
+**Configuración**
 
-### Gestión de Configuración
+Solo he configurado lo esencial en `settings.py`:
+- Access token expira en 1 hora (suficiente para una sesión de trabajo normal)
+- Refresh token expira en 7 días (para no tener que hacer login constantemente)
 
-Se utiliza **python-decouple** para gestionar configuración sensible mediante variables de entorno:
-- `SECRET_KEY`: Clave secreta de Django
-- `DEBUG`: Modo debug (True/False)
-- `OMDB_API_KEY`: Clave de API de OMDB
+### Variables de Entorno
 
-También se puede implementar con os y hacer llamadas con os.getenv("KEY"), pero con python-decouple queda mucho más limpio y simple
+He usado **python-decouple** para manejar la configuración sensible que no debería estar en el código:
+
+```env
+SECRET_KEY=tu-clave-secreta-django
+DEBUG=True
+OMDB_API_KEY=tu-api-key-omdb
+```
+
+**¿Por qué python-decouple y no os.getenv()?**
+
+Ambas opciones funcionan, pero `decouple` tiene ventajas:
+- Convierte automáticamente tipos (bool, int, etc.)
+- Lee archivos `.env` automáticamente
+- Permite valores por defecto de forma más limpia
+- Es más explícito y fácil de leer
+
+Ejemplo:
+```python
+# Con decouple
+DEBUG = config('DEBUG', default=False, cast=bool)
+
+# Con os.getenv
+DEBUG = os.getenv('DEBUG', 'False') == 'True'  # menos claro
+```
+
+### Gestión de Favoritos
+
+He implementado un sistema completo de favoritos con persistencia en SQLite:
+
+**Decisiones de diseño:**
+
+1. **Modelo simple**: Una tabla `Favorite` con los campos esenciales (usuario, película, fecha)
+
+2. **imdb_id como clave primaria**: En lugar de usar el `id` autogenerado de Django, he usado `imdb_id` directamente como primary key porque:
+   - Es único por naturaleza (IMDB garantiza IDs únicos)
+   - Simplifica las queries (no necesito buscar por `id` interno)
+   - Es más intuitivo en la API: `DELETE /favorites/tt0133093/` en vez de `/favorites/42/`
+
+3. **Constraint de unicidad por usuario**: Un usuario no puede añadir la misma película dos veces
+   ```python
+   class Meta:
+       unique_together = ('user', 'imdb_id')
+   ```
+
+4. **Manejo de duplicados**: Si intentas añadir una película que ya está en favoritos, retorna error 400 con mensaje claro
+
+5. **Cada usuario ve solo sus favoritos**: Las queries filtran automáticamente por `request.user`
+
+**Endpoints:**
+- `GET /api/movies/favorites/` - Lista tus favoritos
+- `POST /api/movies/favorites/` - Añade una película (requiere: imdb_id, title, year, poster)
+- `DELETE /api/movies/favorites/<imdb_id>/` - Elimina de favoritos
 
 ### Manejo de Errores
 
-**Validación de parámetros:**
-- Si falta el parámetro `query` en búsqueda: retorna `400 Bad Request`
+**Validación de entrada:**
+- Si falta el parámetro `query` en búsqueda → `400 Bad Request`
+- Si el body de crear favorito es inválido → `400 Bad Request` con detalles del error
+- Si intentas añadir una película ya en favoritos → `400 Bad Request` con mensaje explicativo
 
-**Errores de API externa:**
-- La capa de servicio normaliza las respuestas de error de OMDB
-- Si OMDB retorna error en búsqueda: se convierte a respuesta vacía válida
-- Si OMDB retorna error en detalle: se reenvía el mensaje de error
+**Errores de base de datos:**
+- Django lanza `IntegrityError` cuando hay duplicados en favoritos
+- Lo he capturado para devolver un mensaje amigable en vez de un error 500
 
-**Errores de conexión:**
-- Actualmente, errores HTTP de `requests` se propagan como `500 Internal Server Error`
-- Mejora futura: implementar try/catch para errores de red y timeouts
+**Errores de API externa (OMDB):**
+- Si OMDB retorna error en búsqueda → lo convierto a lista vacía (para dar mejor UX)
+- Si OMDB retorna error en detalle → reenvío el mensaje de error tal cual
+- Si hay error de red → Django devuelve 500 (como mejora futura, habría que capturar esto y dar un mensaje más claro)
+
+**Errores de autenticación:**
+- Sin token o token inválido → `401 Unauthorized`
+- Token expirado → `401 Unauthorized` (cliente debe usar refresh token)
 
 ### Base de Datos
 
-Usa SQLite (la BD por defecto de Django). Por ahora solo guarda los usuarios, pero está lista para agregar funcionalidades como películas favoritas o historial de búsquedas.
+He usado **SQLite** (la base de datos por defecto de Django) porque:
+- Es suficiente para el alcance de este proyecto
+- No requiere instalación ni configuración adicional
+- Es fácil de versionar y distribuir para hacer pruebas
+- Se podría migrar a PostgreSQL o MySQL sin problemas si el proyecto crece
+
+**Tablas principales:**
+- `auth_user`: Usuarios de Django (admin, usuario1, usuario2)
+- `movies_favorite`: Películas favoritas de cada usuario
 
 ### Caché
 
-No está implementado aún, pero sería útil para:
-- Reducir llamadas a OMDB (tiene límite de 1000/día gratis)
-- Mejorar tiempos de respuesta
+No está implementado todavía, pero sería una buena mejora para:
+- **Reducir llamadas a OMDB**: La API gratuita tiene límite de 1000 peticiones al día
+- **Mejorar rendimiento**: Cachear búsquedas populares y detalles de películas
 
-Se podría usar Redis con Django Cache Framework.
+**Implementación futura:**
+- Redis con Django Cache Framework
+- Cache de 1 hora para detalles de películas (no cambian frecuentemente)
+- Cache de 30 minutos para búsquedas
 
 ## Estructura del Proyecto
 
@@ -492,21 +564,29 @@ peliculas/
 
 ## Buenas Prácticas Implementadas
 
-- Arquitectura en capas (views, services, repositories)
-- Variables de entorno para secrets
-- Código Python siguiendo PEP 8
-- Validación de parámetros en los endpoints
-- CORS configurado para aplicaciones web  
+- **Arquitectura en capas**: Separación clara entre views, services y repositories
+- **Variables de entorno**: Configuración sensible fuera del código (SECRET_KEY, API keys)
+- **Validación de datos**: Serializers de DRF para validar entrada del usuario
+- **Manejo de errores**: Mensajes claros y códigos HTTP apropiados
+- **CORS configurado**: Permite consumo desde aplicaciones web
+- **Autenticación robusta**: JWT con access y refresh tokens
+- **Código limpio**: PEP 8, nombres descriptivos, funciones con responsabilidad única
+- **Constraint de BD**: `unique_together` para evitar duplicados en favoritos
+- **Usuarios aislados**: Cada usuario solo ve sus propios favoritos  
 
 ## Mejoras Futuras
 
-- Sistema de películas favoritas (guardar en BD)
-- Tests unitarios y de integración
-- Caché con Redis para optimizar llamadas a OMDB
-- Paginación mejorada
-- Documentación con Swagger
-- Rate limiting
-- Docker
+Si tuviera más tiempo, añadiría:
+
+- **Tests**: Unitarios para services/repositories, de integración para endpoints
+- **Caché**: Redis para reducir llamadas a OMDB y mejorar tiempos de respuesta
+- **Paginación mejorada**: Controlar mejor la paginación de resultados de búsqueda
+- **Documentación automática**: Swagger/OpenAPI para que los desarrolladores puedan probar la API desde el navegador
+- **Rate limiting**: Limitar peticiones por usuario para evitar abuso
+- **Docker**: Contenedorizar la aplicación para facilitar el despliegue
+- **Logging**: Sistema de logs estructurado para debugging en producción
+- **Validación de películas**: Verificar que el `imdb_id` existe antes de añadir a favoritos
+- **Filtros y búsqueda**: Buscar dentro de favoritos, ordenar por fecha/título
 
 ## Tecnologías Utilizadas
 
