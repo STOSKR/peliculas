@@ -259,11 +259,11 @@ Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
 
 #### 4. Detalle de Película
 
-**Endpoint:** `GET /api/movies/<imdb_id>/`  
+**Endpoint:** `GET /api/movies/<imdbID>/`  
 **Autenticación:** Requerida (JWT)
 
 **Parámetros:**
-- `imdb_id` (requerido, en URL): ID de IMDB (ej: tt0133093)
+- `imdbID` (requerido, en URL): ID de IMDB (ej: tt0133093)
 
 **Ejemplo:**
 ```bash
@@ -332,10 +332,10 @@ Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
 ```json
 [
   {
-    "imdb_id": "tt0133093",
-    "title": "The Matrix",
-    "year": "1999",
-    "poster": "https://...",
+    "imdbID": "tt0133093",
+    "Title": "The Matrix",
+    "Year": "1999",
+    "Poster": "https://...",
     "added_at": "2025-11-14T10:30:00Z"
   }
 ]
@@ -361,20 +361,20 @@ Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
 **Body (JSON):**
 ```json
 {
-  "imdb_id": "tt0133093",
-  "title": "The Matrix",
-  "year": "1999",
-  "poster": "https://..."
+  "imdbID": "tt0133093",
+  "Title": "The Matrix",
+  "Year": "1999",
+  "Poster": "https://..."
 }
 ```
 
 **Respuesta exitosa (201 Created):**
 ```json
 {
-  "imdb_id": "tt0133093",
-  "title": "The Matrix",
-  "year": "1999",
-  "poster": "https://...",
+  "imdbID": "tt0133093",
+  "Title": "The Matrix",
+  "Year": "1999",
+  "Poster": "https://...",
   "added_at": "2025-11-14T10:30:00Z"
 }
 ```
@@ -389,8 +389,8 @@ Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
 **Error - Datos inválidos (400 Bad Request):**
 ```json
 {
-  "imdb_id": ["This field is required."],
-  "title": ["This field is required."]
+  "imdbID": ["This field is required."],
+  "Title": ["This field is required."]
 }
 ```
 
@@ -411,7 +411,7 @@ Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
 
 #### 7. Eliminar de Favoritos
 
-**Endpoint:** `DELETE /api/movies/favorites/<imdb_id>/`  
+**Endpoint:** `DELETE /api/movies/favorites/<imdbID>/`  
 **Autenticación:** Requerida (JWT)
 
 **Ejemplo:**
@@ -458,10 +458,10 @@ Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
 | POST | `/api/auth/login/` | No | Obtener access y refresh tokens |
 | POST | `/api/auth/refresh/` | No | Renovar access token |
 | GET | `/api/movies/search/` | Sí | Buscar películas por nombre |
-| GET | `/api/movies/<imdb_id>/` | Sí | Obtener detalle de película |
+| GET | `/api/movies/<imdbID>/` | Sí | Obtener detalle de película |
 | GET | `/api/movies/favorites/` | Sí | Listar películas favoritas |
 | POST | `/api/movies/favorites/` | Sí | Añadir película a favoritos |
-| DELETE | `/api/movies/favorites/<imdb_id>/` | Sí | Eliminar película de favoritos |
+| DELETE | `/api/movies/favorites/<imdbID>/` | Sí | Eliminar película de favoritos |
 
 ## Autenticación
 
@@ -595,7 +595,7 @@ He implementado un sistema completo de favoritos con persistencia en SQLite:
 
 1. **Modelo simple**: Una tabla `Favorite` con los campos esenciales (usuario, película, fecha)
 
-2. **imdb_id como clave primaria**: En lugar de usar el `id` autogenerado de Django, he usado `imdb_id` directamente como primary key porque:
+2. **imdbID como clave primaria**: En lugar de usar el `id` autogenerado de Django, he usado `imdbID` directamente como primary key porque:
    - Es único por naturaleza (IMDB garantiza IDs únicos)
    - Simplifica las queries (no necesito buscar por `id` interno)
    - Es más intuitivo en la API: `DELETE /favorites/tt0133093/` en vez de `/favorites/42/`
@@ -603,7 +603,7 @@ He implementado un sistema completo de favoritos con persistencia en SQLite:
 3. **Constraint de unicidad por usuario**: Un usuario no puede añadir la misma película dos veces
    ```python
    class Meta:
-       unique_together = ('user', 'imdb_id')
+       unique_together = ('user', 'imdbID')
    ```
 
 4. **Manejo de duplicados**: Si intentas añadir una película que ya está en favoritos, retorna error 400 con mensaje claro
@@ -612,8 +612,8 @@ He implementado un sistema completo de favoritos con persistencia en SQLite:
 
 **Endpoints:**
 - `GET /api/movies/favorites/` - Lista tus favoritos
-- `POST /api/movies/favorites/` - Añade una película (requiere: imdb_id, title, year, poster)
-- `DELETE /api/movies/favorites/<imdb_id>/` - Elimina de favoritos
+- `POST /api/movies/favorites/` - Añade una película (requiere: imdbID, Title, Year, Poster)
+- `DELETE /api/movies/favorites/<imdbID>/` - Elimina de favoritos
 
 ### Manejo de Errores
 

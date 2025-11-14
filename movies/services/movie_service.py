@@ -13,8 +13,8 @@ class MovieService:
 
         return data
 
-    def get_movie_detail(self, imdb_id):
-        data = self.omdb_repository.get_movie_detail(imdb_id)
+    def get_movie_detail(self, imdbID):
+        data = self.omdb_repository.get_movie_detail(imdbID)
 
         if data.get("Response") == "False":
             return {"Error": data.get("Error", "Movie not found")}

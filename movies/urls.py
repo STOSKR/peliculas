@@ -10,7 +10,7 @@ urlpatterns = [
     path("search/", MovieSearchView.as_view(), name="movie-search"),
     path("favorites/", FavoriteListView.as_view(), name="favorites-list"),
     path(
-        "favorites/<str:imdb_id>/",
+        "favorites/<str:imdbID>/",
         FavoriteDetailView.as_view(),
         name="favorites-detail",
     ),

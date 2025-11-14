@@ -13,8 +13,8 @@ class OMDBRepository:
         response.raise_for_status()
         return response.json()
 
-    def get_movie_detail(self, imdb_id):
-        params = {"i": imdb_id, "apikey": self.api_key}
+    def get_movie_detail(self, imdbID):
+        params = {"i": imdbID, "apikey": self.api_key}
         response = requests.get(self.base_url, params=params)
         response.raise_for_status()
         return response.json()

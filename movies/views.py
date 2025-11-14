@@ -57,9 +57,9 @@ class FavoriteListView(APIView):
 
 
 class FavoriteDetailView(APIView):
-    def delete(self, request, imdb_id):
+    def delete(self, request, imdbID):
         try:
-            favorite = Favorite.objects.get(user=request.user, imdb_id=imdb_id)
+            favorite = Favorite.objects.get(user=request.user, imdbID=imdbID)
             favorite.delete()
             return Response({"message": "Película eliminada de favoritos"})
         except Favorite.DoesNotExist:
