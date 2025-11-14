@@ -1,0 +1,207 @@
+{
+	"info": {
+		"_postman_id": "72292cdf-8f07-4a9d-9afb-fe7382dc78ef",
+		"name": "Izertis",
+		"description": "# Películas API\n\nAPI REST para buscar películas y consultar detalles usando OMDB como fuente de datos.\n\n## Autenticación\n\nEste API usa JWT (JSON Web Tokens). Para acceder a los endpoints:\n\n1. Ejecuta la request \"Login\" con credenciales válidas\n    \n2. Copia el token `access` de la respuesta\n    \n3. Úsalo en las demás requests (ya configurado en Authorization)\n    \n\n## Usuarios disponibles\n\n- **username:** usuario1, **password:** pass123\n    \n- **username:** usuario2, **password:** pass123\n    \n- **username:** admin, **password:** admin123\n    \n\n## Base URL\n\n[http://localhost:8000](http://localhost:8000)\n\n## Endpoints\n\n- POST /api/auth/login/ - Obtener tokens JWT\n    \n- POST /api/auth/refresh/ - Refrescar access token\n    \n- GET /api/movies/search/ - Buscar películas\n    \n- GET /api/movies/{imdb_id}/ - Detalle de película\n    \n\n## Autenticación\n\nGuarda automáticamente access_token y refresh_token con métodos en post-response",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39373031"
+	},
+	"item": [
+		{
+			"name": "Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();\r",
+							"pm.collectionVariables.set(\"access_token\", jsonData.access);\r",
+							"pm.collectionVariables.set(\"refresh_token\", jsonData.refresh);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"username\": \"usuario1\",\r\n  \"password\": \"pass123\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/auth/login/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"login",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Refresh token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();\r",
+							"pm.collectionVariables.set(\"access_token\", jsonData.access);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"refresh\": \"{{refresh_token}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/auth/refresh/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"refresh",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Buscar películas",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/movies/search/?query=matrix",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"movies",
+						"search",
+						""
+					],
+					"query": [
+						{
+							"key": "query",
+							"value": "matrix"
+						},
+						{
+							"key": "page",
+							"value": "1",
+							"description": "opcional",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Detalle de película",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{access_token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/movies/tt0133093/",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"movies",
+						"tt0133093",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refresh_token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

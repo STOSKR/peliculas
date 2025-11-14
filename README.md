@@ -1,10 +1,16 @@
 # Películas API
 
-API REST desarrollado con Django y Django REST Framework para consultar información de películas desde la API de OMDB.
+API REST con Django y DRF para buscar películas y ver su información detallada. Los datos se obtienen de OMDB API.
 
-## Descripción
+## 📦 Colección de Postman
 
-Esta aplicación expone un API REST que permite buscar películas por nombre y acceder a su información detallada. Internamente, la aplicación consulta la API de OMDB (Open Movie Database) para obtener los datos de las películas.
+Incluye una colección de Postman lista para usar: `Peliculas_API.postman_collection.json`
+
+**Para importarla:**
+1. Abre Postman
+2. Click en "Import"
+3. Selecciona el archivo `Peliculas_API.postman_collection.json`
+4. La colección incluye todos los endpoints con autenticación JWT configurada
 
 ## Requisitos Previos
 
@@ -270,11 +276,7 @@ movies/
 
 3. **Repositories (Acceso a datos)**: Abstraen la comunicación con APIs externas (OMDB). Esta capa podría fácilmente cambiarse para usar otra fuente de datos sin afectar el resto del código.
 
-**Ventajas de esta arquitectura:**
-- **Testabilidad**: Cada capa puede ser testeada independientemente
-- **Mantenibilidad**: Cambios en una capa no afectan a las demás
-- **Escalabilidad**: Fácil agregar nuevas funcionalidades o fuentes de datos
-- **Claridad**: Separación clara de responsabilidades
+Esta separación hace que sea más fácil testear, mantener y escalar el proyecto. Si mañana quiero cambiar OMDB por otra API, solo toco el repository.
 
 ### Framework y Dependencias
 
@@ -328,16 +330,10 @@ usuario2 / pass123
 - `POST /api/auth/login/` - Obtener tokens (access + refresh)
 - `POST /api/auth/refresh/` - Refrescar access token
 
-**Ventajas de JWT:**
-- Stateless: no requiere almacenar sesiones en servidor
-- Escalable: ideal para APIs REST
-- Seguro: firmado con clave secreta
-- Auto-contenido: incluye información del usuario
-
-**Alternativas consideradas pero no implementadas:**
-- Token Authentication: más simple pero requiere almacenamiento en BD
-- Session Authentication: no ideal para APIs REST stateless
-- OAuth2: demasiado complejo para este MVP
+**¿Por qué JWT?**
+- No necesita guardar sesiones en el servidor (stateless)
+- Escalable y seguro
+- El token incluye la info del usuario
 
 ### Gestión de Configuración
 
@@ -364,25 +360,15 @@ También se puede implementar con os y hacer llamadas con os.getenv("KEY"), pero
 
 ### Base de Datos
 
-El proyecto utiliza **SQLite** (base de datos por defecto de Django). 
-Actualmente no se persiste ninguna información localmente, pero la infraestructura está lista para implementar funcionalidades como:
-- Películas favoritas de usuarios
-- Caché de búsquedas frecuentes
-- Historial de búsquedas
+Usa SQLite (la BD por defecto de Django). Por ahora solo guarda los usuarios, pero está lista para agregar funcionalidades como películas favoritas o historial de búsquedas.
 
 ### Caché
 
-**No implementado actualmente**, pero se considera para optimización futura:
-
-**Opciones evaluadas:**
-- **Django Cache Framework**: con backend Redis para cachear respuestas de OMDB
-- **Tiempo de vida**: 1-24 horas dependiendo del tipo de datos
-- **Estrategia**: Cache-aside pattern
-
-**Beneficios:**
-- Reducir llamadas a API externa (límites de rate)
+No está implementado aún, pero sería útil para:
+- Reducir llamadas a OMDB (tiene límite de 1000/día gratis)
 - Mejorar tiempos de respuesta
-- Reducir costos si se usa API de pago
+
+Se podría usar Redis con Django Cache Framework.
 
 ## Estructura del Proyecto
 
@@ -408,27 +394,21 @@ peliculas/
 
 ## Buenas Prácticas Implementadas
 
-✅ **Separación de responsabilidades** mediante arquitectura en capas  
-✅ **Principio DRY** (Don't Repeat Yourself)  
-✅ **Variables de entorno** para configuración sensible  
-✅ **Gestión de dependencias** con requirements.txt  
-✅ **Código idiomático Python** siguiendo PEP 8  
-✅ **Vistas basadas en clases** de DRF para mejor organización  
-✅ **Validación de parámetros** en endpoints  
-✅ **Respuestas HTTP semánticas** con códigos de estado apropiados  
-✅ **Configuración CORS** para aplicaciones web cliente  
+- Arquitectura en capas (views, services, repositories)
+- Variables de entorno para secrets
+- Código Python siguiendo PEP 8
+- Validación de parámetros en los endpoints
+- CORS configurado para aplicaciones web  
 
 ## Mejoras Futuras
 
-- [ ] Implementar autenticación (Token/JWT)
-- [ ] Agregar sistema de películas favoritas con persistencia en BD
-- [ ] Implementar caché para optimizar llamadas a OMDB
-- [ ] Agregar tests unitarios y de integración
-- [ ] Implementar paginación personalizada
-- [ ] Agregar logging estructurado
-- [ ] Documentación automática con Swagger/OpenAPI
-- [ ] Rate limiting para proteger el API
-- [ ] Dockerización del proyecto
+- Sistema de películas favoritas (guardar en BD)
+- Tests unitarios y de integración
+- Caché con Redis para optimizar llamadas a OMDB
+- Paginación mejorada
+- Documentación con Swagger
+- Rate limiting
+- Docker
 
 ## Tecnologías Utilizadas
 
