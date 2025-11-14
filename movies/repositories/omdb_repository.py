@@ -8,20 +8,13 @@ class OMDBRepository:
         self.api_key = settings.OMDB_API_KEY
 
     def search_movies(self, query, page=1):
-        params = {
-            's': query,
-            'page': page,
-            'apikey': self.api_key
-        }
+        params = {"s": query, "page": page, "apikey": self.api_key}
         response = requests.get(self.base_url, params=params)
         response.raise_for_status()
         return response.json()
 
     def get_movie_detail(self, imdb_id):
-        params = {
-            'i': imdb_id,
-            'apikey': self.api_key
-        }
+        params = {"i": imdb_id, "apikey": self.api_key}
         response = requests.get(self.base_url, params=params)
         response.raise_for_status()
         return response.json()

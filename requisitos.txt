@@ -10,7 +10,7 @@ Requisitos Técnicos Base
 
 Requisitos Funcionales Adicionales
 También nos gustaría que cubrieras los siguientes requisitos:
-- El API deberá poder ser invocado desde aplicaciones Web utilizando llamadas XHR, por lo que deberás considerar la posibilidad de configurar CORS. La desarrolles o no, considera habilitar las peticiones CORS para una aplicación Angular corriendo en localhost y puerto 4200.
+    - El API deberá poder ser invocado desde aplicaciones Web utilizando llamadas XHR, por lo que deberás considerar la posibilidad de configurar CORS. La desarrolles o no, considera habilitar las peticiones CORS para una aplicación Angular corriendo en localhost y puerto 4200.
 - Sería interesante que, además, te plantearas cuestiones de acceso autenticado a tu API expuesto desde Django/DRF. No es necesaria la gestión de usuarios, puede basarse perfectamente en usuarios mock hardcoded/en un fichero de configuración.
 
 Requisitos Opcionales (Valorables)

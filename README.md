@@ -59,7 +59,18 @@ OMDB_API_KEY=tu-api-key-de-omdb
 python manage.py migrate
 ```
 
-### 6. Ejecutar el servidor
+### 6. Crear usuarios mock
+
+```bash
+python manage.py create_mock_users
+```
+
+Esto creará 3 usuarios hardcoded:
+- `admin` / `admin123` (superusuario)
+- `usuario1` / `pass123`
+- `usuario2` / `pass123`
+
+### 7. Ejecutar el servidor
 
 ```bash
 python manage.py runserver
@@ -67,13 +78,75 @@ python manage.py runserver
 
 La aplicación estará disponible en: `http://localhost:8000`
 
+## Autenticación
+
+Este API utiliza **JWT (JSON Web Tokens)** para autenticación. Todos los endpoints de películas requieren autenticación.
+
+### Obtener Token de Acceso
+
+**Endpoint:** `POST /api/auth/login/`
+
+**Body (JSON):**
+```json
+{
+  "username": "usuario1",
+  "password": "pass123"
+}
+```
+
+**Respuesta exitosa (200 OK):**
+```json
+{
+  "access": "eyJ0eXAiOiJKV1QiLCJhbGc...",
+  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGc..."
+}
+```
+
+### Refrescar Token
+
+**Endpoint:** `POST /api/auth/refresh/`
+
+**Body (JSON):**
+```json
+{
+  "refresh": "eyJ0eXAiOiJKV1QiLCJhbGc..."
+}
+```
+
+**Respuesta exitosa (200 OK):**
+```json
+{
+  "access": "eyJ0eXAiOiJKV1QiLCJhbGc..."
+}
+```
+
+### Usar el Token en las Peticiones
+
+Para acceder a los endpoints protegidos, incluye el token en el header `Authorization`:
+
+```
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
+```
+
+**Ejemplo con curl:**
+```bash
+curl -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc..." \
+     http://localhost:8000/api/movies/search/?query=matrix
+```
+
+### Configuración de Tokens
+
+- **Access Token**: Válido por 1 hora
+- **Refresh Token**: Válido por 7 días
+
 ## Endpoints Expuestos
 
 ### 1. Búsqueda de Películas
 
 Permite buscar películas por nombre o término de búsqueda.
 
-**Endpoint:** `GET /movies/search/`
+**Endpoint:** `GET /api/movies/search/`
+**Autenticación:** Requerida (JWT)
 
 **Parámetros:**
 - `query` (requerido): Término de búsqueda
@@ -81,7 +154,8 @@ Permite buscar películas por nombre o término de búsqueda.
 
 **Ejemplo de uso:**
 ```bash
-GET http://localhost:8000/movies/search/?query=guardians&page=1
+GET http://localhost:8000/api/movies/search/?query=guardians&page=1
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
 ```
 
 **Respuesta exitosa (200 OK):**
@@ -128,14 +202,16 @@ GET http://localhost:8000/movies/search/?query=guardians&page=1
 
 Obtiene información detallada de una película específica mediante su ID de IMDB.
 
-**Endpoint:** `GET /movies/<imdb_id>/`
+**Endpoint:** `GET /api/api/movies/<imdb_id>/`
+**Autenticación:** Requerida (JWT)
 
 **Parámetros:**
 - `imdb_id` (requerido, en URL): ID de IMDB de la película (ej: tt0133093)
 
 **Ejemplo de uso:**
 ```bash
-GET http://localhost:8000/movies/tt2015381/
+GET http://localhost:8000/api/movies/tt2015381/
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
 ```
 
 **Respuesta exitosa (200 OK):**
@@ -204,6 +280,7 @@ movies/
 
 - **Django 5.1.3**: Framework web principal
 - **Django REST Framework 3.15.2**: Para construir el API REST con vistas basadas en clases (APIView)
+- **djangorestframework-simplejwt 5.3.1**: Autenticación JWT para DRF
 - **django-cors-headers 4.6.0**: Manejo de CORS para permitir peticiones desde aplicaciones web cliente
 - **python-decouple 3.8**: Gestión de configuración mediante variables de entorno
 - **requests 2.32.3**: Cliente HTTP para consumir la API de OMDB
@@ -224,12 +301,43 @@ Esto habilita que una aplicación Angular (u otro framework frontend) corriendo 
 
 ### Autenticación
 
-Actualmente, el API **no implementa autenticación**. Todos los endpoints son de acceso público.
+Actualmente, el API implementa **autenticación JWT (JSON Web Tokens)** con usuarios mock hardcoded.
 
-**Consideraciones para implementación futura:**
-- DRF ofrece múltiples opciones: Token Authentication, Session Authentication, JWT
-- Para un MVP con usuarios mock, se podría usar Token Authentication con usuarios hardcoded
-- Para producción, se recomienda implementar autenticación basada en JWT con gestión completa de usuarios
+**Implementación:**
+- **Simple JWT**: Librería `djangorestframework-simplejwt` para gestión de tokens
+- **Usuarios mock**: 3 usuarios hardcoded creados mediante comando de Django
+- **Access Token**: Válido por 1 hora
+- **Refresh Token**: Válido por 7 días
+- **Algoritmo**: HS256
+
+**Flujo de autenticación:**
+1. Usuario envía credenciales a `/api/auth/login/`
+2. Si son válidas, recibe `access_token` y `refresh_token`
+3. Incluye `access_token` en header `Authorization: Bearer <token>` para cada petición
+4. Cuando expira, usa `refresh_token` en `/api/auth/refresh/` para obtener nuevo `access_token`
+
+**Usuarios disponibles (hardcoded):**
+```python
+# Creados con: python manage.py create_mock_users
+admin / admin123 (superusuario)
+usuario1 / pass123
+usuario2 / pass123
+```
+
+**Endpoints de autenticación:**
+- `POST /api/auth/login/` - Obtener tokens (access + refresh)
+- `POST /api/auth/refresh/` - Refrescar access token
+
+**Ventajas de JWT:**
+- Stateless: no requiere almacenar sesiones en servidor
+- Escalable: ideal para APIs REST
+- Seguro: firmado con clave secreta
+- Auto-contenido: incluye información del usuario
+
+**Alternativas consideradas pero no implementadas:**
+- Token Authentication: más simple pero requiere almacenamiento en BD
+- Session Authentication: no ideal para APIs REST stateless
+- OAuth2: demasiado complejo para este MVP
 
 ### Gestión de Configuración
 
@@ -327,6 +435,7 @@ peliculas/
 - **Python 3.x**
 - **Django 5.1.3** - Framework web
 - **Django REST Framework 3.15.2** - Construcción de API REST
+- **djangorestframework-simplejwt 5.3.1** - Autenticación JWT
 - **django-cors-headers 4.6.0** - Soporte CORS
 - **python-decouple 3.8** - Gestión de configuración
 - **requests 2.32.3** - Cliente HTTP
