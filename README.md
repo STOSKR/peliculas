@@ -2,7 +2,22 @@
 
 API REST con Django y DRF para buscar películas y ver su información detallada. Los datos se obtienen de OMDB API.
 
-## Colección de Postman
+## 📑 Índice
+
+- [Colección de Postman](#-colección-de-postman)
+- [Requisitos Previos](#requisitos-previos)
+- [Instalación y Ejecución](#instalación-y-ejecución)
+- [Endpoints Expuestos](#endpoints-expuestos)
+  - [Autenticación](#autenticación)
+  - [Películas](#películas)
+  - [Favoritos](#favoritos)
+- [Decisiones Técnicas](#decisiones-técnicas)
+- [Estructura del Proyecto](#estructura-del-proyecto)
+- [Buenas Prácticas Implementadas](#buenas-prácticas-implementadas)
+- [Mejoras Futuras](#mejoras-futuras)
+- [Tecnologías Utilizadas](#tecnologías-utilizadas)
+
+## 📦 Colección de Postman
 
 Incluye una colección de Postman lista para usar: `Movie_API.postman_collection.json`
 
@@ -84,13 +99,16 @@ python manage.py runserver
 
 La aplicación estará disponible en: `http://localhost:8000`
 
-## Autenticación
+## Endpoints Expuestos
 
-Este API utiliza **JWT (JSON Web Tokens)** para autenticación. Todos los endpoints de películas requieren autenticación.
+### Autenticación
 
-### Obtener Token de Acceso
+Todos los endpoints de películas y favoritos requieren autenticación JWT.
 
-**Endpoint:** `POST /api/auth/login/`
+#### 1. Login - Obtener Tokens
+
+**Endpoint:** `POST /api/auth/login/`  
+**Autenticación:** No requerida
 
 **Body (JSON):**
 ```json
@@ -108,9 +126,30 @@ Este API utiliza **JWT (JSON Web Tokens)** para autenticación. Todos los endpoi
 }
 ```
 
-### Refrescar Token
+**Error - Credenciales inválidas (401 Unauthorized):**
+```json
+{
+  "detail": "No active account found with the given credentials"
+}
+```
 
-**Endpoint:** `POST /api/auth/refresh/`
+**Error - Campos faltantes (400 Bad Request):**
+```json
+{
+  "username": ["This field is required."],
+  "password": ["This field is required."]
+}
+```
+
+**Usuarios disponibles:**
+- `admin` / `admin123` (superusuario)
+- `usuario1` / `pass123`
+- `usuario2` / `pass123`
+
+#### 2. Refresh - Renovar Access Token
+
+**Endpoint:** `POST /api/auth/refresh/`  
+**Autenticación:** No requerida
 
 **Body (JSON):**
 ```json
@@ -126,41 +165,47 @@ Este API utiliza **JWT (JSON Web Tokens)** para autenticación. Todos los endpoi
 }
 ```
 
-### Usar el Token en las Peticiones
+**Error - Refresh token inválido o expirado (401 Unauthorized):**
+```json
+{
+  "detail": "Token is invalid or expired",
+  "code": "token_not_valid"
+}
+```
 
-Para acceder a los endpoints protegidos, incluye el token en el header `Authorization`:
+**Error - Campo faltante (400 Bad Request):**
+```json
+{
+  "refresh": ["This field is required."]
+}
+```
 
+**Configuración de tokens:**
+- **Access Token**: Válido por 1 hora
+- **Refresh Token**: Válido por 7 días
+
+**Uso del token:**  
+Incluye el access token en el header `Authorization` de cada petición:
 ```
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
 ```
 
-**Ejemplo con curl:**
-```bash
-curl -H "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc..." \
-     http://localhost:8000/api/movies/search/?query=matrix
-```
+---
 
-### Configuración de Tokens
+### Películas
 
-- **Access Token**: Válido por 1 hora
-- **Refresh Token**: Válido por 7 días
+#### 3. Buscar Películas
 
-## Endpoints Expuestos
-
-### 1. Búsqueda de Películas
-
-Permite buscar películas por nombre o término de búsqueda.
-
-**Endpoint:** `GET /api/movies/search/`
+**Endpoint:** `GET /api/movies/search/`  
 **Autenticación:** Requerida (JWT)
 
 **Parámetros:**
 - `query` (requerido): Término de búsqueda
-- `page` (opcional): Número de página para resultados paginados (default: 1)
+- `page` (opcional): Número de página (default: 1)
 
-**Ejemplo de uso:**
+**Ejemplo:**
 ```bash
-GET http://localhost:8000/api/movies/search/?query=guardians&page=1
+GET http://localhost:8000/api/movies/search/?query=matrix&page=1
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
 ```
 
@@ -169,18 +214,11 @@ Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
 {
   "Search": [
     {
-      "imdbID": "tt2015381",
-      "Title": "Guardians of the Galaxy",
-      "Year": "2014",
+      "imdbID": "tt0133093",
+      "Title": "The Matrix",
+      "Year": "1999",
       "Type": "movie",
-      "Poster": "https://m.media-amazon.com/images/..."
-    },
-    {
-      "imdbID": "tt3896198",
-      "Title": "Guardians of the Galaxy Vol. 2",
-      "Year": "2017",
-      "Type": "movie",
-      "Poster": "https://m.media-amazon.com/images/..."
+      "Poster": "https://..."
     }
   ],
   "totalResults": "15",
@@ -204,63 +242,87 @@ Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
 }
 ```
 
-### 2. Detalle de Película
+**Error - Sin autenticación (401 Unauthorized):**
+```json
+{
+  "detail": "Authentication credentials were not provided."
+}
+```
 
-Obtiene información detallada de una película específica mediante su ID de IMDB.
+**Error - Token inválido (401 Unauthorized):**
+```json
+{
+  "detail": "Given token not valid for any token type",
+  "code": "token_not_valid"
+}
+```
 
-**Endpoint:** `GET /api/api/movies/<imdb_id>/`
+#### 4. Detalle de Película
+
+**Endpoint:** `GET /api/movies/<imdb_id>/`  
 **Autenticación:** Requerida (JWT)
 
 **Parámetros:**
-- `imdb_id` (requerido, en URL): ID de IMDB de la película (ej: tt0133093)
+- `imdb_id` (requerido, en URL): ID de IMDB (ej: tt0133093)
 
-**Ejemplo de uso:**
+**Ejemplo:**
 ```bash
-GET http://localhost:8000/api/movies/tt2015381/
+GET http://localhost:8000/api/movies/tt0133093/
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
 ```
 
 **Respuesta exitosa (200 OK):**
 ```json
 {
-  "imdbID": "tt2015381",
-  "Title": "Guardians of the Galaxy",
-  "Year": "2014",
-  "Rated": "PG-13",
-  "Released": "01 Aug 2014",
-  "Runtime": "121 min",
-  "Genre": "Action, Adventure, Comedy",
-  "Director": "James Gunn",
-  "Writer": "James Gunn, Nicole Perlman, Dan Abnett",
-  "Actors": "Chris Pratt, Zoe Saldana, Dave Bautista",
-  "Plot": "A group of intergalactic criminals must pull together to stop a fanatical warrior...",
-  "Language": "English",
-  "Country": "United States",
-  "Awards": "Nominated for 2 Oscars. 52 wins & 103 nominations total",
-  "Poster": "https://m.media-amazon.com/images/...",
-  "Metascore": "76",
-  "imdbRating": "8.0",
-  "imdbVotes": "1,200,000",
+  "imdbID": "tt0133093",
+  "Title": "The Matrix",
+  "Year": "1999",
+  "Rated": "R",
+  "Released": "31 Mar 1999",
+  "Runtime": "136 min",
+  "Genre": "Action, Sci-Fi",
+  "Director": "Lana Wachowski, Lilly Wachowski",
+  "Actors": "Keanu Reeves, Laurence Fishburne, Carrie-Anne Moss",
+  "Plot": "A computer hacker learns from mysterious rebels...",
+  "Poster": "https://...",
+  "imdbRating": "8.7",
   "Type": "movie",
   "Response": "True"
 }
 ```
 
-**Error - Película no encontrada (200 OK con error):**
+**Error - Película no encontrada (200 OK):**
 ```json
 {
   "Error": "Incorrect IMDb ID."
 }
 ```
 
-### 3. Listar Películas Favoritas
+**Error - Sin autenticación (401 Unauthorized):**
+```json
+{
+  "detail": "Authentication credentials were not provided."
+}
+```
 
-Obtiene todas las películas favoritas del usuario autenticado.
+**Error - Token inválido (401 Unauthorized):**
+```json
+{
+  "detail": "Given token not valid for any token type",
+  "code": "token_not_valid"
+}
+```
 
-**Endpoint:** `GET /api/movies/favorites/`
+---
+
+### Favoritos
+
+#### 5. Listar Favoritos
+
+**Endpoint:** `GET /api/movies/favorites/`  
 **Autenticación:** Requerida (JWT)
 
-**Ejemplo de uso:**
+**Ejemplo:**
 ```bash
 GET http://localhost:8000/api/movies/favorites/
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
@@ -270,29 +332,30 @@ Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
 ```json
 [
   {
-    "id": 1,
     "imdb_id": "tt0133093",
     "title": "The Matrix",
     "year": "1999",
     "poster": "https://...",
     "added_at": "2025-11-14T10:30:00Z"
-  },
-  {
-    "id": 2,
-    "imdb_id": "tt2015381",
-    "title": "Guardians of the Galaxy",
-    "year": "2014",
-    "poster": "https://...",
-    "added_at": "2025-11-14T09:15:00Z"
   }
 ]
 ```
 
-### 4. Añadir Película a Favoritos
+**Respuesta con lista vacía (200 OK):**
+```json
+[]
+```
 
-Añade una película a la lista de favoritos del usuario.
+**Error - Sin autenticación (401 Unauthorized):**
+```json
+{
+  "detail": "Authentication credentials were not provided."
+}
+```
 
-**Endpoint:** `POST /api/movies/favorites/`
+#### 6. Añadir a Favoritos
+
+**Endpoint:** `POST /api/movies/favorites/`  
 **Autenticación:** Requerida (JWT)
 
 **Body (JSON):**
@@ -308,7 +371,6 @@ Añade una película a la lista de favoritos del usuario.
 **Respuesta exitosa (201 Created):**
 ```json
 {
-  "id": 1,
   "imdb_id": "tt0133093",
   "title": "The Matrix",
   "year": "1999",
@@ -324,14 +386,35 @@ Añade una película a la lista de favoritos del usuario.
 }
 ```
 
-### 5. Eliminar Película de Favoritos
+**Error - Datos inválidos (400 Bad Request):**
+```json
+{
+  "imdb_id": ["This field is required."],
+  "title": ["This field is required."]
+}
+```
 
-Elimina una película de la lista de favoritos del usuario.
+**Error - Sin autenticación (401 Unauthorized):**
+```json
+{
+  "detail": "Authentication credentials were not provided."
+}
+```
 
-**Endpoint:** `DELETE /api/movies/favorites/<imdb_id>/`
+**Error - Token inválido (401 Unauthorized):**
+```json
+{
+  "detail": "Given token not valid for any token type",
+  "code": "token_not_valid"
+}
+```
+
+#### 7. Eliminar de Favoritos
+
+**Endpoint:** `DELETE /api/movies/favorites/<imdb_id>/`  
 **Autenticación:** Requerida (JWT)
 
-**Ejemplo de uso:**
+**Ejemplo:**
 ```bash
 DELETE http://localhost:8000/api/movies/favorites/tt0133093/
 Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
@@ -350,6 +433,41 @@ Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGc...
   "error": "Película no encontrada en favoritos"
 }
 ```
+
+**Error - Sin autenticación (401 Unauthorized):**
+```json
+{
+  "detail": "Authentication credentials were not provided."
+}
+```
+
+**Error - Token inválido (401 Unauthorized):**
+```json
+{
+  "detail": "Given token not valid for any token type",
+  "code": "token_not_valid"
+}
+```
+
+---
+
+### Resumen de Endpoints
+
+| Método | Endpoint | Autenticación | Descripción |
+|--------|----------|---------------|-------------|
+| POST | `/api/auth/login/` | No | Obtener access y refresh tokens |
+| POST | `/api/auth/refresh/` | No | Renovar access token |
+| GET | `/api/movies/search/` | Sí | Buscar películas por nombre |
+| GET | `/api/movies/<imdb_id>/` | Sí | Obtener detalle de película |
+| GET | `/api/movies/favorites/` | Sí | Listar películas favoritas |
+| POST | `/api/movies/favorites/` | Sí | Añadir película a favoritos |
+| DELETE | `/api/movies/favorites/<imdb_id>/` | Sí | Eliminar película de favoritos |
+
+## Autenticación
+
+### Detalles de Implementación
+
+Este API utiliza **JWT (JSON Web Tokens)** para autenticación. Los detalles de uso están en la sección [Endpoints Expuestos](#endpoints-expuestos).
 
 ## Decisiones Técnicas
 
@@ -578,14 +696,8 @@ peliculas/
 
 Si tuviera más tiempo, añadiría:
 
-- **Tests**: Unitarios para services/repositories, de integración para endpoints
 - **Caché**: Redis para reducir llamadas a OMDB y mejorar tiempos de respuesta
-- **Paginación mejorada**: Controlar mejor la paginación de resultados de búsqueda
-- **Documentación automática**: Swagger/OpenAPI para que los desarrolladores puedan probar la API desde el navegador
 - **Rate limiting**: Limitar peticiones por usuario para evitar abuso
-- **Docker**: Contenedorizar la aplicación para facilitar el despliegue
-- **Logging**: Sistema de logs estructurado para debugging en producción
-- **Validación de películas**: Verificar que el `imdb_id` existe antes de añadir a favoritos
 - **Filtros y búsqueda**: Buscar dentro de favoritos, ordenar por fecha/título
 
 ## Tecnologías Utilizadas
