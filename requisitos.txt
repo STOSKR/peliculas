@@ -1,12 +1,12 @@
 Tal y como comentamos ayer, querríamos plantearte como prueba técnica construir con Django y Django REST Framework una pequeña aplicación donde se exponga un API de películas para poder ser consumido/utilizado desde aplicaciones cliente (no es necesario que desarrolles un cliente, pero sería valorable al menos una colección de postman para probar).
 
 Requisitos Técnicos Base
-- Deberás crear la aplicación como proyecto Django con Django REST Framework (DRF).
-- La aplicación deberá poder lanzarse con python manage.py runserver.
-- En cuanto al gestor de dependencias utiliza pip con archivo requirements.txt.
-- La aplicación deberá exponer un API REST que deberá permitir al menos buscar películas por nombre mediante llamadas HTTP y acceder a su detalle.
-- Internamente la aplicación deberá consultar en otro API de películas como por ejemplo TMDB (API Overview) o OMDB ( https://www.omdbapi.com/ ) 
-- Para invocar al API de TMDB (desde dentro de tu aplicación) puedes utilizar las utilidades de Django/Python como el módulo requests o similar que consideres apropiado.
+    - Deberás crear la aplicación como proyecto Django con Django REST Framework (DRF).
+    - La aplicación deberá poder lanzarse con python manage.py runserver.
+    - En cuanto al gestor de dependencias utiliza pip con archivo requirements.txt.
+    - La aplicación deberá exponer un API REST que deberá permitir al menos buscar películas por nombre mediante llamadas HTTP y acceder a su detalle.
+    - Internamente la aplicación deberá consultar en otro API de películas como por ejemplo TMDB (API Overview) o OMDB ( https://www.omdbapi.com/ ) 
+    - Para invocar al API de TMDB (desde dentro de tu aplicación) puedes utilizar las utilidades de Django/Python como el módulo requests o similar que consideres apropiado.
 
 Requisitos Funcionales Adicionales
 También nos gustaría que cubrieras los siguientes requisitos:
@@ -19,9 +19,10 @@ Requisitos Opcionales (Valorables)
 Entregables
 - Código fuente del proyecto (repositorio Git, puede ser privado, me das acceso)
 - Archivo requirements.txt con las dependencias
+
 Archivo README.md con:
-- Instrucciones de instalación y ejecución
-- Descripción de los endpoints expuestos
+    - Instrucciones de instalación y ejecución
+    - Descripción de los endpoints expuestos
 - Decisiones técnicas tomadas (arquitectura, autenticación, caché, etc.)
 - Criterios de Evaluación
 

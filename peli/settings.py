@@ -121,5 +121,5 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:4200',
 ]
 
-TMDB_API_KEY = config('TMDB_API_KEY')
-TMDB_BASE_URL = 'https://api.themoviedb.org/3'
+OMDB_API_KEY = config('OMDB_API_KEY')
+OMDB_BASE_URL = 'http://www.omdbapi.com/'
